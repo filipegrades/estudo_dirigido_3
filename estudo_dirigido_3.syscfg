@@ -5,3 +5,20 @@
  * @v2CliArgs --board "/boards/LAUNCHXL_F28379D" --device "TMS320F28379D" --package "337ZWT" --context "CPU1" --product "C2000WARE@26.00.00.00"
  * @versions {"tool":"1.27.0+4565"}
  */
+
+/**
+ * Import the modules used in this configuration.
+ */
+const cputimer  = scripting.addModule("/driverlib/cputimer.js", {}, false);
+const cputimer1 = cputimer.addInstance();
+
+/**
+ * Write custom configuration values to the imported modules.
+ */
+cputimer1.$name                    = "sineTimer";
+cputimer1.cputimerBase             = "CPUTIMER1_BASE";
+cputimer1.timerPeriod              = 1000000;
+cputimer1.enableInterrupt          = true;
+cputimer1.registerInterrupts       = true;
+cputimer1.startTimer               = true;
+cputimer1.timerInt.enableInterrupt = true;
