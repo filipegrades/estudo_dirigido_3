@@ -20,5 +20,5 @@ cputimer1.cputimerBase             = "CPUTIMER1_BASE";
 cputimer1.enableInterrupt          = true;
 cputimer1.registerInterrupts       = true;
 cputimer1.startTimer               = true;
-cputimer1.timerPeriod              = 100000;
+cputimer1.timerPeriod              = 416;
 cputimer1.timerInt.enableInterrupt = true;

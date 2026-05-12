@@ -6,7 +6,8 @@
 #include "stdlib.h"
 
 // Declaração dos defines
-#define BUFFER_SIZE 16      // Tamanho do buffer
+#define BUFFER_SIZE 160      // Tamanho do buffer de armazenamento das entradas e saídaa
+#define FILTER_BUFFER_SIZE 16 // Tamanho do buffer do filtro média móvel
 #define PI 3.14     // Valor adotado para pi
 
 // Delaração das variáveis globais
@@ -15,13 +16,17 @@ unsigned int g_sinePeak = 1000;
 int g_signalNoiseMax = 50;
 int g_signalNoiseMin = -50;
 static unsigned int g_iS = 0;
+float g_inputSignal;
 float g_inputSignalBuffer[BUFFER_SIZE];
 float g_noise;
+float g_outputSignal;
 float g_outputSignalBuffer[BUFFER_SIZE];
+float g_filterBuffer[FILTER_BUFFER_SIZE];
+static unsigned int g_iF = 0;
 
 
 // Protótipo das funções
-float movingAverage(float *buffer);
+float movingAverage(float value);
 
 // Main
 void main(void)
@@ -58,22 +63,25 @@ void main(void)
 // Função de interrupção do Timer de geração da senoide
 __interrupt void INT_sineTimer_ISR(void)
 {
-    g_inputSignalBuffer[g_iS] = g_sineMean + g_sinePeak * sin(2*PI*g_iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
-    
-    g_outputSignalBuffer[g_iS] = movingAverage(g_inputSignalBuffer);
+    g_inputSignal = g_sineMean + g_sinePeak * sin(2*PI*g_iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
+    g_inputSignalBuffer[g_iS] = g_inputSignal;
+    g_outputSignal = movingAverage(g_inputSignalBuffer[g_iS]);
+    g_outputSignalBuffer[g_iS] = g_outputSignal;
     g_iS = (g_iS+1)%BUFFER_SIZE;
 }
 
 // Função de calculo da média movel
-float movingAverage(float *buffer)
+float movingAverage(float value)
 {
+    g_filterBuffer[g_iF] = value;
     float sum = 0.0f;
     unsigned int i;
-    for (i = 0U; i < BUFFER_SIZE; i++)
+    for (i = 0U; i < FILTER_BUFFER_SIZE; i++)
     {
-        sum += buffer[i]; 
+        sum += g_filterBuffer[i]; 
     }
-    return sum / (float)BUFFER_SIZE;
+    g_iF = (g_iF+1)%FILTER_BUFFER_SIZE;
+    return sum / (float)FILTER_BUFFER_SIZE;
 }
 
 
