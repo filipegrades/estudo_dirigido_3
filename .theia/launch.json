@@ -11,6 +11,20 @@
         "name": "base_",
         "resourceId": "/base_"
       }
+    },
+    {
+      "name": "estudo_dirigido_3",
+      "type": "ccs-debug",
+      "request": "launch",
+      "projectInfo": {
+        "name": "estudo_dirigido_3",
+        "resourceId": "/estudo_dirigido_3"
+      },
+      "launchSettings": {
+        "coresToLoadForProjectLaunch": [
+          "C28xx_CPU1"
+        ]
+      }
     }
   ]
 }
