@@ -35,6 +35,18 @@ typedef struct {
     unsigned int securityLimit;          // Valor do limite de segurança do canal
 } AdcChannel_t;
 
+// Enumeração para a FSM
+typedef enum {
+    SIGNAL_STATE_IDLE,
+    SIGNAL_STATE_POSITIVE,
+    SIGNAL_STATE_NEGATIVE
+} SignalState_t;
+
+// Enumeração para determinação do estado do LED
+typedef enum {
+    LED_LIGADO,
+    LED_DESLIGADO
+} LedState_t;
 
 
 // Delaração das variáveis globais
@@ -43,6 +55,8 @@ unsigned int g_sinePeak = 1000;
 int g_signalNoiseMax = 50;
 int g_signalNoiseMin = -50;
 AdcChannel_t g_adcChannel;
+bool g_enableModulation = false;
+SignalState_t g_signalState1;
 
 
 
@@ -51,6 +65,7 @@ void initAdcChannel(void);
 void processAdcChannel(AdcChannel_t *pChannel);
 float movingAverage(AdcChannel_t *pCh);
 float convertADCToVoltage(float adcValue);
+void signal_state_handler(AdcChannel_t *pCh);
 
 // Main
 void main(void)
@@ -121,11 +136,19 @@ void processAdcChannel(AdcChannel_t *pChannel)
 {
     pChannel->inputSignal = g_sineMean + g_sinePeak * sin(2*PI*pChannel->iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
     pChannel->inputSignalBuffer[pChannel->iS] = pChannel->inputSignal;
-    pChannel->outputSignal = movingAverage(&g_adcChannel);
-    pChannel->outputSignalBuffer[pChannel->iS] = pChannel->g_outputSignal;
+    pChannel->outputSignal = movingAverage(pChannel);
+    pChannel->outputSignalBuffer[pChannel->iS] = pChannel->outputSignal;
     pChannel->outputSignalVoltage = convertADCToVoltage(pChannel->outputSignal);
     pChannel->outputSignalVoltageBuffer[pChannel->iS] = pChannel->outputSignalVoltage;
     pChannel->iS = (pChannel->iS+1)%BUFFER_SIZE;
+    if(g_enableModulation)
+    {
+        signal_state_handler(pChannel);
+    }
+    else {
+        g_signalState1 = SIGNAL_STATE_IDLE;
+    }
+    
 }
 
 // Função de calculo da média movel
@@ -148,6 +171,18 @@ float convertADCToVoltage(float adcValue)
     return ((float)adcValue / (float)ADC_MAX_VALUE) * ADC_REFERENCE_VOLTAGE - ADC_MEAN_VOLTAGE;
 }
 
+// Implementação da função do FSM
+void signal_state_handler(AdcChannel_t *pCh)
+{
+    if(pCh->outputSignalVoltage > 0)
+    {
+        g_signalState1 = SIGNAL_STATE_POSITIVE;
+    }
+    else if (pCh->outputSignalVoltage < 0) 
+    {
+        g_signalState1 = SIGNAL_STATE_NEGATIVE;
+    }
+}
 
 //
 // End of File
