@@ -6,12 +6,15 @@
 #include "stdlib.h"
 
 // Declaração dos defines
-#define BUFFER_SIZE 80      // Tamanho do buffer de armazenamento das entradas e saídaa
+#define BUFFER_SIZE 80      // Tamanho do buffer de armazenamento das entradas e saídas
 #define FILTER_BUFFER_SIZE 16 // Tamanho do buffer do filtro média móvel
 #define PI 3.14     // Valor adotado para pi
 #define ADC_MAX_VALUE           4095U   // Valor máximo para ADC de 12 bits
 #define ADC_REFERENCE_VOLTAGE   3.3F    // Tensão de referência do ADC
 #define ADC_MEAN_VOLTAGE        1.65F   // Valor médio da tensão para ser alternada
+#define PWM_COMPARE_MASK    0x03FFU // Máscara para bits 0-9 (valor de comparação)
+#define PWM_ENABLE_BIT      (1U << 10) // Bit 10: habilita PWM
+#define PWM_PERIOD_US       1000U   // Período total do PWM em microssegundos
 
 // --- Enumeração para o Estado do Canal ADC ---
 typedef enum {
@@ -48,6 +51,14 @@ typedef enum {
     LED_DESLIGADO
 } LedState_t;
 
+// Struct do PWM
+typedef struct {
+    unsigned int g_pwmControlReg; // Registrador de controle PWM simulado
+    float g_dutyCyclePercent;       // Ciclo de trabalho desejado (0.0 a 100.0)
+    unsigned int g_timeOn_us;               // Tempo LIGADO (LED ON)
+    unsigned int g_timeOff_us;              // Tempo DESLIGADO (LED OFF)
+} PWMChannel_t;
+
 
 // Delaração das variáveis globais
 unsigned int g_sineMean = 2048;
@@ -57,7 +68,7 @@ int g_signalNoiseMin = -50;
 AdcChannel_t g_adcChannel;
 bool g_enableModulation = false;
 SignalState_t g_signalState1;
-
+PWMChannel_t g_pwmChannel1;
 
 
 // Protótipo das funções
