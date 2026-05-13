@@ -178,7 +178,7 @@ void signal_state_handler(AdcChannel_t *pCh)
     {
         g_signalState1 = SIGNAL_STATE_POSITIVE;
     }
-    else if (pCh->outputSignalVoltage < 0) 
+    else if (pCh->outputSignalVoltage <= 0) 
     {
         g_signalState1 = SIGNAL_STATE_NEGATIVE;
     }
