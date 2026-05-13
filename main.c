@@ -108,11 +108,14 @@ void main(void)
     EINT;
     ERTM;
 
+    // Inicialização do ADC
     initAdcChannel();
+    // Inicialização do PWM
     initPWM();
 
     while(1)
     {
+        // Geração do PWM por Software
         generateSoftwarePWM();
     }	
 	
@@ -150,6 +153,7 @@ __interrupt void INT_sineTimer_ISR(void)
     processAdcChannel(&g_adcChannel);
 }
 
+// Função de processamento do ADC a cada interrupção o timer
 void processAdcChannel(AdcChannel_t *pChannel)
 {
     pChannel->inputSignal = g_sineMean + g_sinePeak * sin(2*PI*pChannel->iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
@@ -159,7 +163,6 @@ void processAdcChannel(AdcChannel_t *pChannel)
     pChannel->outputAlternatingSignal = convertADCToAlternating(pChannel->outputSignal);
     pChannel->outputAlternatingSignalBuffer[pChannel->iS] = pChannel->outputAlternatingSignal;
     pChannel->iS = (pChannel->iS+1)%BUFFER_SIZE;
-    
     g_dutyCycleAlternatingSignal = abs(pChannel->outputAlternatingSignal)/(float)g_sinePeak*100.0;
     setPWMDutyCycleAndRegister(g_dutyCycleAlternatingSignal);
     if(g_enableModulation)
@@ -169,9 +172,6 @@ void processAdcChannel(AdcChannel_t *pChannel)
     else {
         g_signalState1 = SIGNAL_STATE_IDLE;
     }
-    
-    
-    
 }
 
 // Função de calculo da média movel
@@ -207,11 +207,13 @@ void signal_state_handler(AdcChannel_t *pCh)
     }
 }
 
+// Função de habilitação do PWM
 void enablePWM(void)
 {
     g_pwmChannel1.pwmControlReg = g_pwmChannel1.pwmControlReg | PWM_ENABLE_BIT;
 }
 
+// Função de desabilitação do PWM
 void disablePWM(void)
 {
     g_pwmChannel1.pwmControlReg = g_pwmChannel1.pwmControlReg & (~PWM_ENABLE_BIT);
@@ -298,6 +300,7 @@ void generateSoftwarePWM(void)
     
 }
 
+// Função de inicialização do PWM
 void initPWM(void)
 {
     g_pwmChannel1.pwmControlReg = 0x0000U;
