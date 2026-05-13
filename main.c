@@ -22,15 +22,15 @@ typedef enum {
 
 // Struct para o Canal ADC
 typedef struct {
-    float g_inputSignal;                            // Sinal de entrada 
-    float g_inputSignalBuffer[BUFFER_SIZE];         // Buffer do sinal de entrada
-    float g_outputSignal;                           // Sinal de saída
-    float g_outputSignalBuffer[BUFFER_SIZE];        // Buffer do sinal de saída
-    unsigned int g_iS;                       // Contador do buffer do sinal
-    float g_filterBuffer[FILTER_BUFFER_SIZE];       // Buffer do filtro 
-    unsigned int g_iF;                       // Contador do buffer do filtro
-    float g_outputSignalVoltage;                           // Sinal de saída em volts
-    float g_outputSignalVoltageBuffer[BUFFER_SIZE];        // Buffer do sinal de saída em volts
+    float inputSignal;                            // Sinal de entrada 
+    float inputSignalBuffer[BUFFER_SIZE];         // Buffer do sinal de entrada
+    float outputSignal;                           // Sinal de saída
+    float outputSignalBuffer[BUFFER_SIZE];        // Buffer do sinal de saída
+    unsigned int iS;                       // Contador do buffer do sinal
+    float filterBuffer[FILTER_BUFFER_SIZE];       // Buffer do filtro 
+    unsigned int iF;                       // Contador do buffer do filtro
+    float outputSignalVoltage;                           // Sinal de saída em volts
+    float outputSignalVoltageBuffer[BUFFER_SIZE];        // Buffer do sinal de saída em volts
     AdcChannelState_t state;                      // Estado atual do canal
     unsigned int securityLimit;          // Valor do limite de segurança do canal
 } AdcChannel_t;
@@ -93,20 +93,20 @@ void initAdcChannel(void)
     // Limpa o buffer do filtro
     for (i = 0U; i < FILTER_BUFFER_SIZE; i++)
     {
-        pCh->g_filterBuffer[i] = 0U;
+        pCh->filterBuffer[i] = 0U;
     }
     // Limpa o buffer de entrada e saida
     for (i = 0U; i < BUFFER_SIZE; i++)
     {
-        pCh->g_inputSignalBuffer[i] = 0U;
-        pCh->g_outputSignalBuffer[i] = 0U;
-        pCh->g_outputSignalVoltageBuffer[i] = 0U;
+        pCh->inputSignalBuffer[i] = 0U;
+        pCh->outputSignalBuffer[i] = 0U;
+        pCh->outputSignalVoltageBuffer[i] = 0U;
     }
-    pCh->g_inputSignal = 0.0f;
-    pCh->g_outputSignal = 0.0f;
-    pCh->g_iS = 0U;
-    pCh->g_iF = 0U;
-    pCh->g_outputSignalVoltage = 0.0F;
+    pCh->inputSignal = 0.0f;
+    pCh->outputSignal = 0.0f;
+    pCh->iS = 0U;
+    pCh->iF = 0U;
+    pCh->outputSignalVoltage = 0.0F;
     pCh->state = ADC_CHANNEL_STATE_NORMAL;
     pCh->securityLimit = 4095U;
 }
@@ -119,26 +119,26 @@ __interrupt void INT_sineTimer_ISR(void)
 
 void processAdcChannel(AdcChannel_t *pChannel)
 {
-    pChannel->g_inputSignal = g_sineMean + g_sinePeak * sin(2*PI*pChannel->g_iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
-    pChannel->g_inputSignalBuffer[pChannel->g_iS] = pChannel->g_inputSignal;
-    pChannel->g_outputSignal = movingAverage(&g_adcChannel);
-    pChannel->g_outputSignalBuffer[pChannel->g_iS] = pChannel->g_outputSignal;
-    pChannel->g_outputSignalVoltage = convertADCToVoltage(pChannel->g_outputSignal);
-    pChannel->g_outputSignalVoltageBuffer[pChannel->g_iS] = pChannel->g_outputSignalVoltage;
-    pChannel->g_iS = (pChannel->g_iS+1)%BUFFER_SIZE;
+    pChannel->inputSignal = g_sineMean + g_sinePeak * sin(2*PI*pChannel->iS/BUFFER_SIZE) + (rand() % (g_signalNoiseMax - g_signalNoiseMin + 1)) + g_signalNoiseMin;
+    pChannel->inputSignalBuffer[pChannel->iS] = pChannel->inputSignal;
+    pChannel->outputSignal = movingAverage(&g_adcChannel);
+    pChannel->outputSignalBuffer[pChannel->iS] = pChannel->g_outputSignal;
+    pChannel->outputSignalVoltage = convertADCToVoltage(pChannel->outputSignal);
+    pChannel->outputSignalVoltageBuffer[pChannel->iS] = pChannel->outputSignalVoltage;
+    pChannel->iS = (pChannel->iS+1)%BUFFER_SIZE;
 }
 
 // Função de calculo da média movel
 float movingAverage(AdcChannel_t *pCh)
 {
-    pCh->g_filterBuffer[pCh->g_iF] = pCh->g_inputSignal;
+    pCh->filterBuffer[pCh->iF] = pCh->inputSignal;
     float sum = 0.0f;
     unsigned int i;
     for (i = 0U; i < FILTER_BUFFER_SIZE; i++)
     {
-        sum += pCh->g_filterBuffer[i]; 
+        sum += pCh->filterBuffer[i]; 
     }
-    pCh->g_iF = (pCh->g_iF+1)%FILTER_BUFFER_SIZE;
+    pCh->iF = (pCh->iF+1)%FILTER_BUFFER_SIZE;
     return sum / (float)FILTER_BUFFER_SIZE;
 }
 
