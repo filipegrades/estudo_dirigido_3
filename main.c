@@ -68,6 +68,7 @@ bool g_enableModulation = false;
 SignalState_t g_signalState1;
 PWMChannel_t g_pwmChannel1;
 float g_dutyCycleAlternatingSignal;
+bool g_sineTimerFlag = false;
 
 // Protótipo das funções
 void initAdcChannel(void);
@@ -115,6 +116,13 @@ void main(void)
 
     while(1)
     {
+        // Analisa do estado da flag da interrupção
+        if (g_sineTimerFlag)
+        {
+            // Caso a flag seja true chama a função para desencadear o processo
+            processAdcChannel(&g_adcChannel);
+        }
+        
         // Geração do PWM por Software
         generateSoftwarePWM();
     }	
@@ -150,7 +158,8 @@ void initAdcChannel(void)
 // Função de interrupção do Timer de geração da senoide
 __interrupt void INT_sineTimer_ISR(void)
 {
-    processAdcChannel(&g_adcChannel);
+    g_sineTimerFlag = true;
+    Interrupt_clearACKGroup(INT_sineTimer_INTERRUPT_ACK_GROUP);
 }
 
 // Função de processamento do ADC a cada interrupção o timer
@@ -172,6 +181,7 @@ void processAdcChannel(AdcChannel_t *pChannel)
     else {
         g_signalState1 = SIGNAL_STATE_IDLE;
     }
+    g_sineTimerFlag = false;
 }
 
 // Função de calculo da média movel

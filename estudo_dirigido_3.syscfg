@@ -25,11 +25,10 @@ led2.$hardware = system.deviceData.board.components.LED5;
 led2.$name     = "LED_vermelho";
 
 cputimer1.$name                    = "sineTimer";
-cputimer1.cputimerBase             = "CPUTIMER1_BASE";
+cputimer1.timerPeriod              = 15000000;
 cputimer1.enableInterrupt          = true;
 cputimer1.registerInterrupts       = true;
 cputimer1.startTimer               = true;
-cputimer1.timerPeriod              = 15000000;
 cputimer1.timerInt.enableInterrupt = true;
 
 /**
